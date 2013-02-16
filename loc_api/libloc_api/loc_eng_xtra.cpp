@@ -46,8 +46,8 @@
 #include <utils/Log.h>
 
 // comment this out to enable logging
-// #undef ALOGD
-// #define ALOGD(...) {}
+// #undef LOGD
+// #define LOGD(...) {}
 
 #define LOC_XTRA_INJECT_DEFAULT_TIMEOUT (3100)
 #define XTRA_BLOCK_SIZE                 (1024)
@@ -60,8 +60,8 @@ const GpsXtraInterface sLocEngXTRAInterface =
 {
     sizeof(GpsXtraInterface),
     qct_loc_eng_xtra_init,
-    /* qct_loc_eng_inject_xtra_data, */
-    qct_loc_eng_inject_xtra_data_proxy, // This func buffers xtra data if GPS is in-session
+    qct_loc_eng_inject_xtra_data,
+    /* qct_loc_eng_inject_xtra_data_proxy, */ // This func buffers xtra data if GPS is in-session
 };
 
 /*===========================================================================
@@ -215,30 +215,27 @@ SIDE EFFECTS
 int loc_eng_inject_xtra_data_in_buffer()
 {
    int rc = 0;
-   char *data;
-   int length;
 
    pthread_mutex_lock(&loc_eng_data.xtra_module_data.lock);
 
-   data = loc_eng_data.xtra_module_data.xtra_data_for_injection;
-   length = loc_eng_data.xtra_module_data.xtra_data_len;
-
-   loc_eng_data.xtra_module_data.xtra_data_for_injection = NULL;
-   loc_eng_data.xtra_module_data.xtra_data_len = 0;
-
-   pthread_mutex_unlock(&loc_eng_data.xtra_module_data.lock);
-
-   if (data)
+   if (loc_eng_data.xtra_module_data.xtra_data_for_injection)
    {
-      if (qct_loc_eng_inject_xtra_data(data, length))
+      if (qct_loc_eng_inject_xtra_data(
+            loc_eng_data.xtra_module_data.xtra_data_for_injection,
+            loc_eng_data.xtra_module_data.xtra_data_len))
       {
          // FIXME gracefully handle injection error
          LOC_LOGE("XTRA injection failed.");
          rc = -1;
       }
 
-      free(data);
+      // Clears buffered data
+      free(loc_eng_data.xtra_module_data.xtra_data_for_injection);
+      loc_eng_data.xtra_module_data.xtra_data_for_injection = NULL;
+      loc_eng_data.xtra_module_data.xtra_data_len = 0;
    }
+
+   pthread_mutex_unlock(&loc_eng_data.xtra_module_data.lock);
 
    return rc;
 }

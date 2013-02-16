@@ -47,8 +47,8 @@
 #include <utils/Log.h>
 
 // comment this out to enable logging
-// #undef ALOGD
-// #define ALOGD(...) {}
+// #undef LOGD
+// #define LOGD(...) {}
 
 typedef struct
 {
@@ -67,6 +67,9 @@ loc_name_val_s_type loc_eng_event_name[] =
       NAME_VAL( RPC_LOC_EVENT_SATELLITE_REPORT ),
       NAME_VAL( RPC_LOC_EVENT_NMEA_1HZ_REPORT ),
       NAME_VAL( RPC_LOC_EVENT_NMEA_POSITION_REPORT ),
+#if (AMSS_VERSION == 50000)
+      NAME_VAL( RPC_LOC_EVENT_NMEA_1HZ_REPORT ),
+#endif
       NAME_VAL( RPC_LOC_EVENT_NI_NOTIFY_VERIFY_REQUEST ),
       NAME_VAL( RPC_LOC_EVENT_ASSISTANCE_DATA_REQUEST ),
       NAME_VAL( RPC_LOC_EVENT_LOCATION_SERVER_REQUEST ),
